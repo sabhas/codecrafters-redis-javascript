@@ -4,13 +4,16 @@ const {
   encodeBulkString,
   parseRequest
 } = require('./redisSerializableParser')
+const { setKeyInMap, getKeyFromMap } = require('./memObj')
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log('Logs from your program will appear here:')
 
 const handlers = {
   ping: () => encodeSingleString('PONG'),
-  echo: (args) => args.map((str) => encodeBulkString(str)).join()
+  echo: (args) => args.map((str) => encodeBulkString(str)).join(),
+  set: (args) => encodeSingleString(setKeyInMap(args[0], args[1])),
+  get: (args) => encodeSingleString(getKeyFromMap(args[0]))
 }
 
 const server = net.createServer((connection) => {
