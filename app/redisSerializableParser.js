@@ -56,6 +56,8 @@ const parseRequest = (request) => {
  */
 
 const encodeSingleString = (str) => {
+  //  If the input is null, the function now returns a special string "$-1\r\n", which is the Redis protocol's way of representing a null bulk string.
+  if (str === null) return '$-1\r\n'
   return `+${str}\r\n`
 }
 
