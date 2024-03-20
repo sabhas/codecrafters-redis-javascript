@@ -12,7 +12,7 @@ console.log('Logs from your program will appear here:')
 const handlers = {
   ping: () => encodeSingleString('PONG'),
   echo: (args) => args.map((str) => encodeBulkString(str)).join(),
-  set: (args) => encodeSingleString(setKeyInMap(args[0], args[1])),
+  set: (args) => encodeSingleString(setKeyInMap(args)),
   get: (args) => encodeSingleString(getKeyFromMap(args[0]))
 }
 
