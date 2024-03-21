@@ -5,6 +5,7 @@ const {
   parseRequest
 } = require('./redisSerializableParser')
 const { setKeyInMap, getKeyFromMap } = require('./memObj')
+const { filterFlags } = require('./utils')
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log('Logs from your program will appear here:')
@@ -15,6 +16,8 @@ const handlers = {
   set: (args) => encodeSingleString(setKeyInMap(args)),
   get: (args) => encodeSingleString(getKeyFromMap(args[0]))
 }
+
+const parsedArguments = filterFlags(process.argv)
 
 const server = net.createServer((connection) => {
   connection.setEncoding('utf8')
@@ -36,4 +39,6 @@ const server = net.createServer((connection) => {
   })
 })
 
-server.listen(6379, '127.0.0.1')
+const port = parsedArguments['port'] || 6379
+
+server.listen(port, '127.0.0.1')
