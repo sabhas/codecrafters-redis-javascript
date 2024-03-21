@@ -5,16 +5,29 @@ const {
   parseRequest
 } = require('./redisSerializableParser')
 const { setKeyInMap, getKeyFromMap } = require('./memObj')
-const { filterFlags } = require('./utils')
+const { filterFlags, getSysInfo } = require('./utils')
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log('Logs from your program will appear here:')
+
+const getRedisInfo = () => {
+  const sysInfo = getSysInfo()
+  const resp = Object.entries(sysInfo)
+    .map(([key, val]) => {
+      return encodeBulkString(`${key}:${val}`)
+    })
+    .join()
+  console.log('Resp: ', resp)
+
+  return resp
+}
 
 const handlers = {
   ping: () => encodeSingleString('PONG'),
   echo: (args) => args.map((str) => encodeBulkString(str)).join(),
   set: (args) => encodeSingleString(setKeyInMap(args)),
-  get: (args) => encodeSingleString(getKeyFromMap(args[0]))
+  get: (args) => encodeSingleString(getKeyFromMap(args[0])),
+  info: () => getRedisInfo()
 }
 
 const parsedArguments = filterFlags(process.argv)

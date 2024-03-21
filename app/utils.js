@@ -15,4 +15,13 @@ const filterFlags = (argv) => {
   return flagsMap
 }
 
-module.exports = { filterFlags }
+const getSysInfo = () => {
+  return {
+    role: 'master',
+    connected_slaves: 0,
+    master_replid: 0,
+    master_repl_offset: 0
+  }
+}
+
+module.exports = { filterFlags, getSysInfo }
