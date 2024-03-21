@@ -29,7 +29,7 @@ const handlers = {
   echo: (args) => args.map((str) => encodeBulkString(str)).join(),
   set: (args) => encodeSingleString(setKeyInMap(args)),
   get: (args) => encodeSingleString(getKeyFromMap(args[0])),
-  info: () => getRedisInfo()
+  info: () => encodeBulkString(getRedisInfo())
 }
 
 const server = net.createServer((connection) => {
