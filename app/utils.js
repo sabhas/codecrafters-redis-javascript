@@ -15,9 +15,9 @@ const filterFlags = (argv) => {
   return flagsMap
 }
 
-const getSysInfo = () => {
+const getSysInfo = (parsedArguments) => {
   return {
-    role: 'master',
+    role: parsedArguments.hasOwnProperty('replicaof') ? 'slave' : 'master',
     connected_slaves: 0,
     master_replid: 0,
     master_repl_offset: 0
