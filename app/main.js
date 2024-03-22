@@ -2,18 +2,17 @@ const net = require('net')
 const {
   encodeSingleString,
   encodeBulkString,
-  parseRequest
+  parseRequest,
+  encodeArray
 } = require('./redisSerializableParser')
 const { setKeyInMap, getKeyFromMap } = require('./memObj')
-const { filterFlags, getSysInfo } = require('./utils')
+const { getSysInfo, getPort, getReplica } = require('./utils')
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log('Logs from your program will appear here:')
 
-const parsedArguments = filterFlags(process.argv)
-
 const getRedisInfo = () => {
-  const sysInfo = getSysInfo(parsedArguments)
+  const sysInfo = getSysInfo(process.argv)
   const resp = Object.entries(sysInfo)
     .map(([key, val]) => {
       return encodeBulkString(`${key}:${val}`)
@@ -22,6 +21,14 @@ const getRedisInfo = () => {
   console.log('Resp: ', resp)
 
   return resp
+}
+
+const performHandshake = (host, port) => {
+  const client = net.createConnection({ host, port }, () => {
+    console.log(`Replica connected to master: ${host}:${port}`)
+  })
+
+  client.write(encodeArray(['ping']))
 }
 
 const handlers = {
@@ -52,6 +59,11 @@ const server = net.createServer((connection) => {
   })
 })
 
-const port = parsedArguments['port'] || 6379
+const port = getPort(process.argv)
+const replica = getReplica(process.argv)
+
+if (replica) {
+  performHandshake(replica.masterHost, replica.masterPort)
+}
 
 server.listen(port, '127.0.0.1')

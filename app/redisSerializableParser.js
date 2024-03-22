@@ -81,4 +81,14 @@ const encodeBulkString = (str) => {
   return `$${str.length}\r\n${str}\r\n`
 }
 
-module.exports = { encodeSingleString, encodeBulkString, parseRequest }
+const encodeArray = (data) => {
+  const payload = data.map((line) => `$${line.length}\r\n${line}`).join('\r\n')
+  return `*${data.length}\r\n${payload}\r\n`
+}
+
+module.exports = {
+  encodeSingleString,
+  encodeBulkString,
+  encodeArray,
+  parseRequest
+}
