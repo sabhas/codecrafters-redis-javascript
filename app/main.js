@@ -23,12 +23,16 @@ const getRedisInfo = () => {
   return resp
 }
 
-const performHandshake = (host, port) => {
+const performHandshake = (host, port, listeningPort) => {
   const client = net.createConnection({ host, port }, () => {
     console.log(`Replica connected to master: ${host}:${port}`)
   })
 
   client.write(encodeArray(['ping']))
+  client.write(
+    encodeArray(['REPLCONF', 'listening-port', listeningPort.toString()])
+  )
+  client.write(encodeArray(['REPLCONF', 'capa', 'psync2']))
 }
 
 const handlers = {
@@ -36,7 +40,8 @@ const handlers = {
   echo: (args) => args.map((str) => encodeBulkString(str)).join(),
   set: (args) => encodeSingleString(setKeyInMap(args)),
   get: (args) => encodeSingleString(getKeyFromMap(args[0])),
-  info: () => encodeBulkString(getRedisInfo())
+  info: () => encodeBulkString(getRedisInfo()),
+  REPLCONF: () => encodeSingleString('OK')
 }
 
 const server = net.createServer((connection) => {
@@ -59,11 +64,11 @@ const server = net.createServer((connection) => {
   })
 })
 
-const port = getPort(process.argv)
+const listeningPort = getPort(process.argv)
 const replica = getReplica(process.argv)
 
 if (replica) {
-  performHandshake(replica.masterHost, replica.masterPort)
+  performHandshake(replica.masterHost, replica.masterPort, listeningPort)
 }
 
-server.listen(port, '127.0.0.1')
+server.listen(listeningPort, '127.0.0.1')
