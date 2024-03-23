@@ -8,11 +8,11 @@ const { EMPTY_RDB_FILE_HEX } = require('./constants')
 
 const replicas = {}
 
-const relayCommandToReplicas = (data) => {
+const relayCommandToReplicas = (request) => {
   for (const replica of Object.values(replicas)) {
     if (replica?.state === 'psync_completed') {
       const replicaConnection = replica.connection
-      replicaConnection.write(data)
+      replicaConnection.write(request)
     }
   }
 }
@@ -20,27 +20,27 @@ const relayCommandToReplicas = (data) => {
 module.exports = {
   ping: () => encodeSingleString('PONG'),
   echo: (args) => args.map((str) => encodeBulkString(str)).join(),
-  set: (args, connection, data) => {
+  set: (args, connection, request) => {
     const resp = setKeyInMap(args)
+    connection.write(encodeSingleString(resp))
 
     const role = getRole(process.argv)
 
     if (role === 'master') {
-      relayCommandToReplicas(data)
+      relayCommandToReplicas(request)
     }
-
-    return encodeSingleString(resp)
   },
   get: (args) => encodeSingleString(getKeyFromMap(args[0])),
   info: () => encodeBulkString(getRedisInfo(process.argv)),
   replconf: (args, connection) => {
     if (args[0] === 'listening-port') {
-      replicas[connection.localPort] = {
+      replicas[`${connection.remoteAddress}:${connection.remotePort}`] = {
         connection,
         state: 'listening_port_set'
       }
     } else if (args[0] === 'capa') {
-      replicas[connection.localPort].state = 'capa_received'
+      replicas[`${connection.remoteAddress}:${connection.remotePort}`].state =
+        'capa_received'
     }
 
     return encodeSingleString('OK')
@@ -66,6 +66,7 @@ module.exports = {
       ])
     )
 
-    replicas[connection.localPort].state = 'psync_completed'
+    replicas[`${connection.remoteAddress}:${connection.remotePort}`].state =
+      'psync_completed'
   }
 }

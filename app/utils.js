@@ -71,11 +71,26 @@ const performHandshake = (host, port, listeningPort) => {
   client.write(encodeArray(['PSYNC', '?', '-1']))
 }
 
+const parseEvents = (events) => {
+  let stEvent = null
+  const parsedEvents = []
+  while (stEvent !== -1) {
+    const nxtStEvent = events.indexOf('*', stEvent + 1)
+    const l = stEvent === null ? 0 : stEvent
+    const r = nxtStEvent === -1 ? events.length : nxtStEvent
+    parsedEvents.push(events.substring(l, r))
+    stEvent = nxtStEvent
+  }
+
+  return parsedEvents
+}
+
 module.exports = {
   getPort,
   getReplica,
   getRole,
   getSysInfo,
   getRedisInfo,
-  performHandshake
+  performHandshake,
+  parseEvents
 }
