@@ -42,7 +42,13 @@ const handlers = {
   set: (args) => encodeSingleString(setKeyInMap(args)),
   get: (args) => encodeSingleString(getKeyFromMap(args[0])),
   info: () => encodeBulkString(getRedisInfo()),
-  replconf: () => encodeSingleString('OK')
+  replconf: () => encodeSingleString('OK'),
+  psync: () => {
+    const sysInfo = getSysInfo(process.argv)
+    return encodeSingleString(
+      `FULLRESYNC ${sysInfo.master_replid} ${sysInfo.master_repl_offset}`
+    )
+  }
 }
 
 const server = net.createServer((connection) => {
