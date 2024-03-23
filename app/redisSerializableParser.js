@@ -1,3 +1,5 @@
+const { CRLF } = require('./constants')
+
 /**
   This function checks if a command from the Redis protocol is valid. 
   It takes two parameters: command, which is the actual command string, and commandLength,
@@ -57,8 +59,8 @@ const parseRequest = (request) => {
 
 const encodeSingleString = (str) => {
   //  If the input is null, the function now returns a special string "$-1\r\n", which is the Redis protocol's way of representing a null bulk string.
-  if (str === null) return '$-1\r\n'
-  return `+${str}\r\n`
+  if (str === null) return `$-1${CRLF}`
+  return `+${str}${CRLF}`
 }
 
 /**
@@ -78,12 +80,23 @@ const encodeSingleString = (str) => {
   This function is essential for encoding data in a way that a Redis client or server can correctly interpret as part of the communication protocol.
 */
 const encodeBulkString = (str) => {
-  return `$${str.length}\r\n${str}\r\n`
+  return `$${str.length}${CRLF}${str}${CRLF}`
 }
 
+/**
+  It takes an array of strings as input and processes each string to create a bulk string,
+  which includes the length of the string, the string itself, and the appropriate terminators (\r\n).
+  
+  These bulk strings are then joined together with \r\n.
+  
+  The function also prefixes the output with an asterisk * followed by the number of items in the array and \r\n,
+  which is the RESP format for the beginning of an array.
+  
+  The resulting string represents the entire array encoded as per RESP.
+ */
 const encodeArray = (data) => {
-  const payload = data.map((line) => `$${line.length}\r\n${line}`).join('\r\n')
-  return `*${data.length}\r\n${payload}\r\n`
+  const payload = data.map((line) => `$${line.length}${CRLF}${line}`).join(CRLF)
+  return `*${data.length}${CRLF}${payload}${CRLF}`
 }
 
 module.exports = {

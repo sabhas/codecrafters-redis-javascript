@@ -7,6 +7,7 @@ const {
 } = require('./redisSerializableParser')
 const { setKeyInMap, getKeyFromMap } = require('./memObj')
 const { getSysInfo, getPort, getReplica } = require('./utils')
+const { CRLF } = require('./constants')
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log('Logs from your program will appear here:')
@@ -23,6 +24,20 @@ const getRedisInfo = () => {
   return resp
 }
 
+/**
+  It is responsible for establishing a connection to the master server
+  and sending the initial PING command as part of the handshake process.
+
+  Here's a breakdown of what's happening:
+
+  performHandshake is a function that takes host and port as arguments,
+  representing the master server's address and port.
+  Inside the function, net.createConnection is used to create a new TCP connection to the specified host and port.
+  When the connection is successfully established, a message is logged to the console confirming the connection.
+  Once connected, the client.write method sends a PING command to the master server.
+  The PING command is encoded as a RESP Array using the encodeArray function,
+  which is then written to the connection stream.
+ */
 const performHandshake = (host, port, listeningPort) => {
   const client = net.createConnection({ host, port }, () => {
     console.log(`Replica connected to master: ${host}:${port}`)
@@ -62,7 +77,7 @@ const server = net.createServer((connection) => {
       connection.write(resp)
     } catch (e) {
       console.error(e)
-      connection.write(e.message + '\r\n')
+      connection.write(e.message + CRLF)
     }
   })
   connection.on('close', () => {
