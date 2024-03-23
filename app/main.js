@@ -33,6 +33,7 @@ const performHandshake = (host, port, listeningPort) => {
     encodeArray(['REPLCONF', 'listening-port', listeningPort.toString()])
   )
   client.write(encodeArray(['REPLCONF', 'capa', 'psync2']))
+  client.write(encodeArray(['PSYNC', '?', '-1']))
 }
 
 const handlers = {
