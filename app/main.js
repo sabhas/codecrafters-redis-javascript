@@ -42,7 +42,7 @@ const handlers = {
   set: (args) => encodeSingleString(setKeyInMap(args)),
   get: (args) => encodeSingleString(getKeyFromMap(args[0])),
   info: () => encodeBulkString(getRedisInfo()),
-  REPLCONF: () => encodeSingleString('OK')
+  replconf: () => encodeSingleString('OK')
 }
 
 const server = net.createServer((connection) => {
@@ -52,7 +52,7 @@ const server = net.createServer((connection) => {
       const parsedQuery = parseRequest(query)
       const command = parsedQuery[0]
       const args = parsedQuery.slice(1)
-      const resp = handlers[command](args)
+      const resp = handlers[command.toLowerCase()](args)
       connection.write(resp)
     } catch (e) {
       console.error(e)
