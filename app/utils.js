@@ -1,6 +1,5 @@
-const net = require('net')
 const { FLAG } = require('./constants')
-const { encodeBulkString, encodeArray } = require('./redisSerializableParser')
+const { encodeBulkString } = require('./redisSerializableParser')
 
 const getRole = (args) => (args.includes(FLAG.REPLICA) ? 'slave' : 'master')
 
@@ -44,33 +43,6 @@ const getRedisInfo = (args) => {
   return resp
 }
 
-/**
-  It is responsible for establishing a connection to the master server
-  and sending the initial PING command as part of the handshake process.
-
-  Here's a breakdown of what's happening:
-
-  performHandshake is a function that takes host and port as arguments,
-  representing the master server's address and port.
-  Inside the function, net.createConnection is used to create a new TCP connection to the specified host and port.
-  When the connection is successfully established, a message is logged to the console confirming the connection.
-  Once connected, the client.write method sends a PING command to the master server.
-  The PING command is encoded as a RESP Array using the encodeArray function,
-  which is then written to the connection stream.
- */
-const performHandshake = (host, port, listeningPort) => {
-  const client = net.createConnection({ host, port }, () => {
-    console.log(`Replica connected to master: ${host}:${port}`)
-  })
-
-  client.write(encodeArray(['ping']))
-  client.write(
-    encodeArray(['REPLCONF', 'listening-port', listeningPort.toString()])
-  )
-  client.write(encodeArray(['REPLCONF', 'capa', 'psync2']))
-  client.write(encodeArray(['PSYNC', '?', '-1']))
-}
-
 const parseEvents = (events) => {
   let stEvent = null
   const parsedEvents = []
@@ -91,6 +63,5 @@ module.exports = {
   getRole,
   getSysInfo,
   getRedisInfo,
-  performHandshake,
   parseEvents
 }

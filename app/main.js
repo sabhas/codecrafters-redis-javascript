@@ -1,13 +1,9 @@
 const net = require('net')
 const { parseRequest } = require('./redisSerializableParser')
-const {
-  getPort,
-  getReplica,
-  performHandshake,
-  parseEvents
-} = require('./utils')
+const { getPort, getReplica, parseEvents } = require('./utils')
 const { CRLF } = require('./constants')
 const commands = require('./commands')
+const { performHandshake } = require('./replicaClient')
 
 const server = net.createServer((connection) => {
   connection.setEncoding('utf8')

@@ -20,9 +20,12 @@ const relayCommandToReplicas = (request) => {
 module.exports = {
   ping: () => encodeSingleString('PONG'),
   echo: (args) => args.map((str) => encodeBulkString(str)).join(),
-  set: (args, connection, request) => {
+  set: (args, connection, request, receivedFromMaster = false) => {
     const resp = setKeyInMap(args)
-    connection.write(encodeSingleString(resp))
+
+    if (!receivedFromMaster) {
+      connection.write(encodeSingleString(resp))
+    }
 
     const role = getRole(process.argv)
 
