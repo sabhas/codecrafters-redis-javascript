@@ -34,10 +34,15 @@ const performHandshake = (host, port, listeningPort) => {
       const requests = parseEvents(data.toString())
       for (const request of requests) {
         if (request.startsWith('*')) {
-          console.log('request', request)
           const parsedRequest = parseRequest(request)
           const command = parsedRequest[0]
           const args = parsedRequest.slice(1)
+
+          if (command.toLowerCase() === 'replconf' && args[0] === 'GETACK') {
+            client.write(encodeArray(['REPLCONF', 'ACK', '0']))
+            continue
+          }
+
           commands[command.toLowerCase()](args, client, request, true)
         }
       }
