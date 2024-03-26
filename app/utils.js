@@ -1,5 +1,9 @@
-const { FLAG } = require('./constants')
-const { encodeBulkString } = require('./redisSerializableParser')
+const { CRLF, FLAG } = require('./constants')
+const {
+  encodeBulkString,
+  encodeSingleString,
+  encodeArray
+} = require('./redisSerializableParser')
 
 const getRole = (args) => (args.includes(FLAG.REPLICA) ? 'slave' : 'master')
 
@@ -38,23 +42,98 @@ const getRedisInfo = (args) => {
       return encodeBulkString(`${key}:${val}`)
     })
     .join()
-  console.log('Resp: ', resp)
 
   return resp
 }
 
-const parseEvents = (events) => {
-  let stEvent = null
-  const parsedEvents = []
-  while (stEvent !== -1) {
-    const nxtStEvent = events.indexOf('*', stEvent + 1)
-    const l = stEvent === null ? 0 : stEvent
-    const r = nxtStEvent === -1 ? events.length : nxtStEvent
-    parsedEvents.push(events.substring(l, r))
-    stEvent = nxtStEvent
+const parseEvents = (data) => {
+  const events = []
+
+  const lines = data.split(CRLF)
+
+  // Check if the last element is blank
+  if (lines[lines.length - 1] === '') {
+    // Remove the last element
+    lines.pop()
   }
 
-  return parsedEvents
+  let index = 0
+
+  while (index < lines.length) {
+    const line = lines[index]
+
+    const commandTypePrefix = line[0]
+
+    switch (commandTypePrefix) {
+      case '+': {
+        events.push({
+          type: 'simpleString',
+          command: line.substr(1)
+        })
+        index++
+        break
+      }
+
+      case '$': {
+        const lengthOfString = Number.parseInt(line.substr(1)) - 1
+        const extractedString = lines[index + 1].substr(0, lengthOfString)
+        events.push({
+          type: 'bulkString',
+          command: extractedString
+        })
+
+        const remainderOfLine = lines[index + 1].length - lengthOfString
+
+        if (remainderOfLine > 0) {
+          const remainderOfCommandLine = lines[index + 1].substr(lengthOfString)
+
+          lines.splice(index + 2, 0, remainderOfCommandLine)
+        }
+
+        index += 2
+        break
+      }
+
+      case '*': {
+        const numberOfEntries = Number.parseInt(line.substr(1))
+
+        const entries = []
+        for (let entryIndex = 0; entryIndex < numberOfEntries; entryIndex++) {
+          const entry = lines[entryIndex * 2 + 2 + index]
+          entries.push(entry)
+        }
+        events.push({
+          type: 'bulkArray',
+          command: entries
+        })
+
+        index += 1 + numberOfEntries * 2
+        break
+      }
+
+      default: {
+        throw new Error('Invalid command')
+      }
+    }
+  }
+
+  return events
+}
+
+const getEventSize = (event) => {
+  if (event.type === 'simpleString') {
+    return encodeSingleString(event.command).length
+  }
+
+  if (event.type === 'bulkString') {
+    return encodeBulkString(event.command).length
+  }
+
+  if (event.type === 'bulkArray') {
+    return encodeArray(event.command).length
+  }
+
+  return 0
 }
 
 module.exports = {
@@ -63,5 +142,6 @@ module.exports = {
   getRole,
   getSysInfo,
   getRedisInfo,
-  parseEvents
+  parseEvents,
+  getEventSize
 }

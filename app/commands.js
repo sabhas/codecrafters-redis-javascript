@@ -1,18 +1,19 @@
 const {
   encodeSingleString,
-  encodeBulkString
+  encodeBulkString,
+  encodeArray
 } = require('./redisSerializableParser')
 const { setKeyInMap, getKeyFromMap } = require('./memObj')
 const { getRedisInfo, getSysInfo, getRole } = require('./utils')
-const { EMPTY_RDB_FILE_HEX } = require('./constants')
+const { EMPTY_RDB_FILE_HEX, CRLF } = require('./constants')
 
 const replicas = {}
 
-const relayCommandToReplicas = (request) => {
+const relayCommandToReplicas = (command) => {
   for (const replica of Object.values(replicas)) {
     if (replica?.state === 'psync_completed') {
       const replicaConnection = replica.connection
-      replicaConnection.write(request)
+      replicaConnection.write(encodeArray(command))
     }
   }
 }
@@ -20,7 +21,7 @@ const relayCommandToReplicas = (request) => {
 module.exports = {
   ping: () => encodeSingleString('PONG'),
   echo: (args) => args.map((str) => encodeBulkString(str)).join(),
-  set: (args, connection, request, receivedFromMaster = false) => {
+  set: (args, connection, command, receivedFromMaster = false) => {
     const resp = setKeyInMap(args)
 
     if (!receivedFromMaster) {
@@ -30,7 +31,7 @@ module.exports = {
     const role = getRole(process.argv)
 
     if (role === 'master') {
-      relayCommandToReplicas(request)
+      relayCommandToReplicas(command)
     }
   },
   get: (args) => encodeSingleString(getKeyFromMap(args[0])),

@@ -1,5 +1,4 @@
 const net = require('net')
-const { parseRequest } = require('./redisSerializableParser')
 const { getPort, getReplica, parseEvents } = require('./utils')
 const { CRLF } = require('./constants')
 const commands = require('./commands')
@@ -9,13 +8,18 @@ const server = net.createServer((connection) => {
   connection.setEncoding('utf8')
   connection.on('data', (event) => {
     try {
-      const requests = parseEvents(event)
-      for (const request of requests) {
-        const parsedRequest = parseRequest(request)
-        const command = parsedRequest[0]
-        const args = parsedRequest.slice(1)
-        const resp = commands[command.toLowerCase()](args, connection, request)
-        if (resp) connection.write(resp)
+      const events = parseEvents(event)
+      for (const event of events) {
+        if (event.type === 'bulkArray') {
+          const command = event.command[0]
+          const args = event.command.slice(1)
+          const resp = commands[command.toLowerCase()](
+            args,
+            connection,
+            event.command
+          )
+          if (resp) connection.write(resp)
+        }
       }
     } catch (e) {
       console.error(e)
