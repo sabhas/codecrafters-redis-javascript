@@ -73,5 +73,8 @@ module.exports = {
     replicas[`${connection.remoteAddress}:${connection.remotePort}`].state =
       'psync_completed'
   },
-  wait: () => ':0\r\n'
+  wait: () => {
+    const replicasCount = Object.keys(replicas).length
+    return `:${replicasCount}${CRLF}`
+  }
 }
