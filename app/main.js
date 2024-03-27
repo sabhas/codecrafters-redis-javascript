@@ -13,11 +13,13 @@ const server = net.createServer((connection) => {
         if (event.type === 'bulkArray') {
           const command = event.command[0]
           const args = event.command.slice(1)
+          console.log('command :>> ', command)
           const resp = commands[command.toLowerCase()](
             args,
             connection,
             event.command
           )
+          console.log('resp :>> ', resp)
           if (resp) connection.write(resp)
         }
       }
