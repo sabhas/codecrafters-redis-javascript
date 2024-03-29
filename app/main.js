@@ -1,44 +1,33 @@
-const net = require('net')
-const { getPort, getReplica, parseEvents } = require('./utils')
-const { CRLF } = require('./constants')
-const commands = require('./commands')
-const { performHandshake } = require('./replicaClient')
+const MasterServer = require('./MasterServer')
+const SlaveServer = require('./SlaveServer')
 
-const server = net.createServer((connection) => {
-  connection.setEncoding('utf8')
-  connection.on('data', (event) => {
-    try {
-      const events = parseEvents(event)
-      for (const event of events) {
-        if (event.type === 'bulkArray') {
-          const command = event.command[0]
-          const args = event.command.slice(1)
-          console.log('command :>> ', command)
-          const resp = commands[command.toLowerCase()](
-            args,
-            connection,
-            event.command
-          )
-          console.log('resp :>> ', resp)
-          if (resp) connection.write(resp)
-        }
-      }
-    } catch (e) {
-      console.error(e)
-      connection.write(e.message + CRLF)
+const HOST = 'localhost'
+const PORT = '6379'
+
+function init(args) {
+  if (args.length === 0) {
+    const server = new MasterServer(HOST, PORT)
+    server.startServer()
+    return
+  }
+
+  const flag = args[0]
+  if (flag === '--port') {
+    if (args.length === 2) {
+      const port = args[1]
+      const server = new MasterServer(HOST, port)
+      return server.startServer()
     }
-  })
-  connection.on('close', () => {
-    console.log('Connection Closed: ')
-    connection.end()
-  })
-})
 
-const listeningPort = getPort(process.argv)
-const replica = getReplica(process.argv)
-
-if (replica) {
-  performHandshake(replica.masterHost, replica.masterPort, listeningPort)
+    if (args.length === 5) {
+      const port = args[1]
+      const replicaFlag = args[2]
+      const masterHost = args[3]
+      const masterPort = args[4]
+      const server = new SlaveServer(HOST, port, masterHost, masterPort)
+      return server.startServer()
+    }
+  }
 }
 
-server.listen(listeningPort, '127.0.0.1')
+init(process.argv.slice(2))
