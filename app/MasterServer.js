@@ -240,8 +240,8 @@ class MasterServer {
   }
 
   handleConfig(args) {
-    let getCommand = args[0]
-    let arg = args[1].toLowerCase()
+    const getCommand = args[0]
+    const arg = args[1].toLowerCase()
     return Encoder.createArray([
       Encoder.createBulkString(arg),
       Encoder.createBulkString(this.config[arg])
@@ -250,7 +250,7 @@ class MasterServer {
 
   handleKeys(args) {
     if (args[0] === '*') {
-      let arr = this.dataStore.getAllKeys().map((value) => {
+      const arr = this.dataStore.getAllKeys().map((value) => {
         return Encoder.createBulkString(value)
       })
       return Encoder.createArray(arr)
