@@ -240,7 +240,6 @@ class MasterServer {
   }
 
   handleConfig(args) {
-    const getCommand = args[0]
     const arg = args[1].toLowerCase()
     return Encoder.createArray([
       Encoder.createBulkString(arg),
