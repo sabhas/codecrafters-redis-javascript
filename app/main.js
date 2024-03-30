@@ -7,8 +7,7 @@ const PORT = '6379'
 function init(args) {
   if (args.length === 0) {
     const server = new MasterServer(HOST, PORT)
-    server.startServer()
-    return
+    return server.startServer()
   }
 
   const flag = args[0]
