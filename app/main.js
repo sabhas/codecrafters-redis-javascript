@@ -28,6 +28,14 @@ function init(args) {
       return server.startServer()
     }
   }
+
+  if (flag === '--dir') {
+    let config = {}
+    config.dir = args[1]
+    config.dbfilename = args[3]
+    let server = new MasterServer(HOST, PORT, config)
+    server.startServer()
+  }
 }
 
 init(process.argv.slice(2))

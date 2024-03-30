@@ -89,6 +89,9 @@ class MasterServer {
       case 'wait':
         this.handleWait(args.slice(1), socket, request)
         break
+      case 'config':
+        socket.write(this.handleConfig(args.slice(1)))
+        break
     }
   }
 
@@ -216,6 +219,15 @@ class MasterServer {
       if (this.wait.numOfAckReplicas >= this.wait.numOfReqReplicas)
         this.respondToWait()
     }
+  }
+
+  handleConfig(args) {
+    let getCommand = args[0]
+    let arg = args[1].toLowerCase()
+    return Encoder.createArray([
+      Encoder.createBulkString(arg),
+      Encoder.createBulkString(this.config[arg])
+    ])
   }
 }
 
