@@ -20,7 +20,6 @@ function init(args) {
 
     if (args.length === 5) {
       const port = args[1]
-      const replicaFlag = args[2]
       const masterHost = args[3]
       const masterPort = args[4]
       const server = new SlaveServer(HOST, port, masterHost, masterPort)
