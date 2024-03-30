@@ -23,6 +23,10 @@ class HashTable {
     return null
   }
 
+  getAllKeys() {
+    return [...this.map.keys()]
+  }
+
   has(key) {
     if (!this.map.has(key)) return false
     if (this.map.get(key).expiry < Date.now()) {

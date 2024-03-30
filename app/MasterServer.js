@@ -1,7 +1,10 @@
 const net = require('net')
+const fs = require('fs')
+const path = require('path')
 const Encoder = require('./Encoder')
 const RequestParser = require('./RequestParser')
 const HashTable = require('./HashTable')
+const RDBParser = require('./RDBParser')
 
 function getUid(socket) {
   return socket.remoteAddress + ':' + socket.remotePort
@@ -22,6 +25,8 @@ class MasterServer {
   }
 
   startServer() {
+    this.loadRDBFile()
+
     const server = net.createServer((socket) => {
       this.clientBuffers[getUid(socket)] = ''
 
@@ -44,6 +49,16 @@ class MasterServer {
     server.listen(this.port, this.host, () => {
       console.log(`Server Listening on ${this.host}:${this.port}`)
     })
+  }
+
+  loadRDBFile() {
+    if (!this.config) return
+    let filePath = path.join(this.config['dir'], this.config['dbfilename'])
+    if (!fs.existsSync(filePath)) return
+    const fileBuffer = fs.readFileSync(filePath)
+    let rdbParser = new RDBParser(fileBuffer)
+    rdbParser.parse()
+    this.dataStore = rdbParser.dataStore
   }
 
   processClientBuffer(socket) {
@@ -91,6 +106,9 @@ class MasterServer {
         break
       case 'config':
         socket.write(this.handleConfig(args.slice(1)))
+        break
+      case 'keys':
+        socket.write(this.handleKeys(args.slice(1)))
         break
     }
   }
@@ -228,6 +246,16 @@ class MasterServer {
       Encoder.createBulkString(arg),
       Encoder.createBulkString(this.config[arg])
     ])
+  }
+
+  handleKeys(args) {
+    if (args[0] === '*') {
+      let arr = this.dataStore.getAllKeys().map((value) => {
+        return Encoder.createBulkString(value)
+      })
+      return Encoder.createArray(arr)
+    }
+    return Encoder.createBulkString('', true)
   }
 }
 
