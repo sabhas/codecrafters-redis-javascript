@@ -33,7 +33,7 @@ function init(args) {
     config.dir = args[1]
     config.dbfilename = args[3]
     let server = new MasterServer(HOST, PORT, config)
-    server.startServer()
+    return server.startServer()
   }
 }
 
