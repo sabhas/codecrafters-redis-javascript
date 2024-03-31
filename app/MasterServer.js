@@ -375,6 +375,34 @@ class MasterServer {
     this.checkBlock()
   }
 
+  getXreadResponse(entries) {
+    if (entries.length === 0) {
+      return Encoder.createBulkString('nil', true)
+    }
+    let ret = []
+    for (const keyEntries of entries) {
+      let key = keyEntries[0]
+      let arr = [Encoder.createBulkString(key)]
+      let entriesForKey = []
+      for (const entries of keyEntries[1]) {
+        let id = entries[0]
+        let keyValues = entries[1]
+        entriesForKey.push(
+          Encoder.createArray([
+            Encoder.createBulkString(id),
+            Encoder.createArray(
+              keyValues.map((value) => Encoder.createBulkString(value))
+            )
+          ])
+        )
+      }
+      arr.push(Encoder.createArray(entriesForKey))
+      ret.push(Encoder.createArray(arr))
+    }
+    let response = Encoder.createArray(ret)
+    return response
+  }
+
   checkBlock() {
     if (!this.block || this.block.isDone) return
 
