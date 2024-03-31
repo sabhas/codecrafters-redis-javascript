@@ -318,6 +318,7 @@ class MasterServer {
     const response = this.getXreadResponse(entries)
     this.block.socket.write(response)
     this.block.isDone = true
+
     if (this.block.timeout != -1) {
       clearTimeout(this.block.timeout)
     }
