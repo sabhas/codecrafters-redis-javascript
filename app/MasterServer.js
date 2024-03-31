@@ -315,10 +315,10 @@ class MasterServer {
   }
 
   handleXrange(args) {
-    let streamKey = args[0]
-    let startId = args[1]
-    let endId = args[2]
-    let entries = this.dataStore.getStreamBetween(streamKey, startId, endId)
+    const streamKey = args[0]
+    const startId = args[1]
+    const endId = args[2]
+    const entries = this.dataStore.getStreamBetween(streamKey, startId, endId)
 
     if (entries.length === 0) {
       return Encoder.createBulkString('nil')
