@@ -420,6 +420,22 @@ class MasterServer {
       clearTimeout(this.block.timeout)
     }
   }
+
+  processStartIds(streamKeys, startIds) {
+    for (let i = 0; i < streamKeys.length; i++) {
+      let key = streamKeys[i]
+      let startId = startIds[i]
+      if (startId !== '$') continue
+      let entries = this.dataStore.get(key)
+      if (entries === null || entries.length === 0) startId = '0-0'
+      let lastEntryId = entries.slice(-1)[0].id
+      let lastEntryIdMS = lastEntryId.split('-')[0]
+      let lastEntryIdSeq = lastEntryId.split('-')[1]
+      startId = lastEntryIdMS + '-' + `${Number.parseInt(lastEntryIdSeq)}`
+      startIds[i] = startId
+    }
+    return startIds
+  }
 }
 
 module.exports = MasterServer
