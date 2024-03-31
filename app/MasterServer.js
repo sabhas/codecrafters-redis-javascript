@@ -379,7 +379,7 @@ class MasterServer {
     if (entries.length === 0) {
       return Encoder.createBulkString('nil', true)
     }
-    let ret = []
+    const ret = []
     for (const keyEntries of entries) {
       let key = keyEntries[0]
       let arr = [Encoder.createBulkString(key)]
@@ -399,8 +399,8 @@ class MasterServer {
       arr.push(Encoder.createArray(entriesForKey))
       ret.push(Encoder.createArray(arr))
     }
-    let response = Encoder.createArray(ret)
-    return response
+
+    return Encoder.createArray(ret)
   }
 
   checkBlock() {
