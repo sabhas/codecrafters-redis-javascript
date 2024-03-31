@@ -381,12 +381,12 @@ class MasterServer {
     }
     const ret = []
     for (const keyEntries of entries) {
-      let key = keyEntries[0]
-      let arr = [Encoder.createBulkString(key)]
-      let entriesForKey = []
+      const key = keyEntries[0]
+      const arr = [Encoder.createBulkString(key)]
+      const entriesForKey = []
       for (const entries of keyEntries[1]) {
-        let id = entries[0]
-        let keyValues = entries[1]
+        const id = entries[0]
+        const keyValues = entries[1]
         entriesForKey.push(
           Encoder.createArray([
             Encoder.createBulkString(id),
