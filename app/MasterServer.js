@@ -315,7 +315,7 @@ class MasterServer {
     )
     if (entries.length === 0) return
 
-    let response = this.getXreadResponse(entries)
+    const response = this.getXreadResponse(entries)
     this.block.socket.write(response)
     this.block.isDone = true
     if (this.block.timeout != -1) {
