@@ -113,6 +113,9 @@ class MasterServer {
       case 'type':
         socket.write(this.handleType(args.slice(1)))
         break
+      case 'xadd':
+        this.handleXadd(args.slice(1), socket)
+        break
     }
   }
 
@@ -267,6 +270,54 @@ class MasterServer {
       return Encoder.createSimpleString('none')
     } else {
       return Encoder.createSimpleString(type)
+    }
+  }
+
+  handleXadd(args, socket) {
+    let streamKey = args[0]
+    let streamEntry = {}
+    let streamEntryId = args[1]
+    streamEntry['id'] = streamEntryId
+
+    for (let i = 2; i < args.length; i += 2) {
+      let entryKey = args[i]
+      let entryValue = args[i + 1]
+      streamEntry[entryKey] = entryValue
+    }
+
+    if (streamEntryId === '0-0') {
+      socket.write(
+        Encoder.createSimpleError(
+          'ERR The ID specified in XADD must be greater than 0-0'
+        )
+      )
+      return
+    }
+    let entryId = this.dataStore.insertStream(streamKey, streamEntry)
+    if (entryId === null) {
+      socket.write(
+        Encoder.createSimpleError(
+          'ERR The ID specified in XADD is equal or smaller than the target stream top item'
+        )
+      )
+      return
+    }
+    socket.write(Encoder.createBulkString(entryId))
+    this.checkBlock()
+  }
+
+  checkBlock() {
+    if (!this.block || this.block.isDone) return
+    let entries = this.dataStore.getStreamAfter(
+      this.block.streamKeys,
+      this.block.startIds
+    )
+    if (entries.length === 0) return
+    let response = this.getXreadResponse(entries)
+    this.block.socket.write(response)
+    this.block.isDone = true
+    if (this.block.timeout != -1) {
+      clearTimeout(this.block.timeout)
     }
   }
 }
