@@ -120,6 +120,36 @@ class HashTable {
     return ret
   }
 
+  getStreamAfter(keys, startIds) {
+    let finalRet = []
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      const start = startIds[i]
+      if (!this.map.has(key)) continue
+      let entries = this.map.get(key).value
+      entries = entries.filter((entry) => entry.id > start)
+
+      let ret = [key]
+      let entriesForKey = []
+      for (const entry of entries) {
+        let arr = [entry.id]
+        let subarr = []
+        for (const entryKey of Object.keys(entry)) {
+          if (entryKey === 'id') continue
+          subarr.push(entryKey)
+          subarr.push(entry[entryKey])
+        }
+        arr.push(subarr)
+        entriesForKey.push(arr)
+      }
+      if (entriesForKey.length === 0) continue
+      ret.push(entriesForKey)
+      finalRet.push(ret)
+    }
+
+    return finalRet
+  }
+
   has(key) {
     if (!this.map.has(key)) return false
     if (this.map.get(key).expiry < Date.now()) {

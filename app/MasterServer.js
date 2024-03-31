@@ -119,6 +119,9 @@ class MasterServer {
       case 'xrange':
         socket.write(this.handleXrange(args.slice(1)))
         break
+      case 'xread':
+        this.handleXread(args.slice(1), socket)
+        break
     }
   }
 
@@ -336,6 +339,40 @@ class MasterServer {
     }
 
     return Encoder.createArray(ret)
+  }
+
+  handleXread(args, socket) {
+    if (args[0].toLowerCase() !== 'block') {
+      args = args.slice(1)
+      const mid = Math.ceil(args.length / 2)
+      let streamKeys = args.slice(0, mid)
+      let startIds = args.slice(mid)
+      let entries = this.dataStore.getStreamAfter(streamKeys, startIds)
+      let response = this.getXreadResponse(entries)
+      socket.write(response)
+      return
+    }
+    let timeoutTime = Number.parseInt(args[1])
+    args = args.slice(3)
+    const mid = Math.ceil(args.length / 2)
+    let streamKeys = args.slice(0, mid)
+    let startIds = args.slice(mid)
+    startIds = this.processStartIds(streamKeys, startIds)
+    this.block = { streamKeys, startIds, isDone: false }
+    this.block.socket = socket
+    this.block.timeout = -1
+    if (timeoutTime != 0) {
+      this.block.timeout = setTimeout(() => {
+        let entries = this.dataStore.getStreamAfter(
+          this.block.streamKeys,
+          this.block.startIds
+        )
+        let response = this.getXreadResponse(entries)
+        this.block.socket.write(response)
+        this.block.isDone = true
+      }, timeoutTime)
+    }
+    this.checkBlock()
   }
 
   checkBlock() {
