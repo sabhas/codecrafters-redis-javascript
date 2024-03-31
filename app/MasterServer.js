@@ -296,6 +296,7 @@ class MasterServer {
       )
       return
     }
+
     let entryId = this.dataStore.insertStream(streamKey, streamEntry)
     if (entryId === null) {
       socket.write(
@@ -305,6 +306,7 @@ class MasterServer {
       )
       return
     }
+
     socket.write(Encoder.createBulkString(entryId))
     this.checkBlock()
   }
