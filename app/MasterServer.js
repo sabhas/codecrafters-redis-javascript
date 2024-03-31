@@ -277,9 +277,9 @@ class MasterServer {
   }
 
   handleXadd(args, socket) {
-    let streamKey = args[0]
-    let streamEntry = {}
-    let streamEntryId = args[1]
+    const streamKey = args[0]
+    const streamEntry = {}
+    const streamEntryId = args[1]
     streamEntry['id'] = streamEntryId
 
     for (let i = 2; i < args.length; i += 2) {
