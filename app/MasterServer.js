@@ -345,10 +345,10 @@ class MasterServer {
     if (args[0].toLowerCase() !== 'block') {
       args = args.slice(1)
       const mid = Math.ceil(args.length / 2)
-      let streamKeys = args.slice(0, mid)
-      let startIds = args.slice(mid)
-      let entries = this.dataStore.getStreamAfter(streamKeys, startIds)
-      let response = this.getXreadResponse(entries)
+      const streamKeys = args.slice(0, mid)
+      const startIds = args.slice(mid)
+      const entries = this.dataStore.getStreamAfter(streamKeys, startIds)
+      const response = this.getXreadResponse(entries)
       socket.write(response)
       return
     }
