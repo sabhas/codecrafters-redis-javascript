@@ -309,7 +309,7 @@ class MasterServer {
   checkBlock() {
     if (!this.block || this.block.isDone) return
 
-    let entries = this.dataStore.getStreamAfter(
+    const entries = this.dataStore.getStreamAfter(
       this.block.streamKeys,
       this.block.startIds
     )
