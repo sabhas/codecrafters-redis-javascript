@@ -264,8 +264,8 @@ class MasterServer {
   }
 
   handleType(args) {
-    let key = args[0]
-    let type = this.dataStore.getType(key)
+    const key = args[0]
+    const type = this.dataStore.getType(key)
     if (type === null) {
       return Encoder.createSimpleString('none')
     } else {
