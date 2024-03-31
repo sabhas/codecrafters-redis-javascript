@@ -423,14 +423,15 @@ class MasterServer {
 
   processStartIds(streamKeys, startIds) {
     for (let i = 0; i < streamKeys.length; i++) {
-      let key = streamKeys[i]
+      const key = streamKeys[i]
       let startId = startIds[i]
       if (startId !== '$') continue
-      let entries = this.dataStore.get(key)
+
+      const entries = this.dataStore.get(key)
       if (entries === null || entries.length === 0) startId = '0-0'
-      let lastEntryId = entries.slice(-1)[0].id
-      let lastEntryIdMS = lastEntryId.split('-')[0]
-      let lastEntryIdSeq = lastEntryId.split('-')[1]
+      const lastEntryId = entries.slice(-1)[0].id
+      const lastEntryIdMS = lastEntryId.split('-')[0]
+      const lastEntryIdSeq = lastEntryId.split('-')[1]
       startId = lastEntryIdMS + '-' + `${Number.parseInt(lastEntryIdSeq)}`
       startIds[i] = startId
     }
