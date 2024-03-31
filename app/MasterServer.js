@@ -116,6 +116,9 @@ class MasterServer {
       case 'xadd':
         this.handleXadd(args.slice(1), socket)
         break
+      case 'xrange':
+        socket.write(this.handleXrange(args.slice(1)))
+        break
     }
   }
 
@@ -304,6 +307,33 @@ class MasterServer {
     }
     socket.write(Encoder.createBulkString(entryId))
     this.checkBlock()
+  }
+
+  handleXrange(args) {
+    let streamKey = args[0]
+    let startId = args[1]
+    let endId = args[2]
+    let entries = this.dataStore.getStreamBetween(streamKey, startId, endId)
+
+    if (entries.length === 0) {
+      return Encoder.createBulkString('nil')
+    }
+
+    let ret = []
+    for (const entry of entries) {
+      let id = entry[0]
+      let keyValues = entry[1]
+      ret.push(
+        Encoder.createArray([
+          Encoder.createBulkString(id),
+          Encoder.createArray(
+            keyValues.map((value) => Encoder.createBulkString(value))
+          )
+        ])
+      )
+    }
+
+    return Encoder.createArray(ret)
   }
 
   checkBlock() {
