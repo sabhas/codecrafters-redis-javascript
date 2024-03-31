@@ -283,8 +283,8 @@ class MasterServer {
     streamEntry['id'] = streamEntryId
 
     for (let i = 2; i < args.length; i += 2) {
-      let entryKey = args[i]
-      let entryValue = args[i + 1]
+      const entryKey = args[i]
+      const entryValue = args[i + 1]
       streamEntry[entryKey] = entryValue
     }
 
