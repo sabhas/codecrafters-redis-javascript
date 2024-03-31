@@ -297,7 +297,7 @@ class MasterServer {
       return
     }
 
-    let entryId = this.dataStore.insertStream(streamKey, streamEntry)
+    const entryId = this.dataStore.insertStream(streamKey, streamEntry)
     if (entryId === null) {
       socket.write(
         Encoder.createSimpleError(
